@@ -141,24 +141,44 @@ From `npm-wrapper/`:
 # 2. Local clean-room test (registry-free). Must end "0 failed".
 ./scripts/local-clean-room-test.sh
 
-# 3. Dry-run the publish: inspect the file list of all three tarballs and
-#    run the lockstep + integrity + shim-consistency checks.
+# 3. Dry-run the publish: runs the lockstep + integrity + shim-consistency
+#    checks AND the preflight gate (scripts/preflight-check.sh), which
+#    asserts the EXACT tarball file list per package:
+#    - each platform package: binary + package.json + README.md + LICENSE
+#      + SECURITY.md (exactly 5 files)
+#    - main: bin/qnsqy.js + bin/integrity.json + package.json + README.md
+#      + LICENSE + SECURITY.md (exactly 6 files; NO postinstall.js, NO
+#      lib/, NO scripts/, NO platform-packages/)
+#    The gate also re-hashes the staged binaries against bin/integrity.json
+#    VALUES, pins the LICENSE wording (Socket fuzzy-matcher protection),
+#    lints repository/bugs/license metadata, and requires a clean git tree
+#    (override: PREFLIGHT_ALLOW_DIRTY=1).
 ./scripts/publish-release.sh
-#    - each platform package must contain ONLY its binary + package.json
-#      + README + LICENSE
-#    - main must contain ONLY bin/qnsqy.js + bin/integrity.json +
-#      package.json + README + LICENSE (NO postinstall.js, NO lib/, NO
-#      scripts/, NO platform-packages/)
 
-# 4. Publish for real. Platform packages publish FIRST, main LAST.
-#    npm prompts for your 2FA OTP per package.
+# 4. Publish for real. The SAME invocation re-runs the preflight gate and
+#    the clean-room test (skippable only with SKIP_CLEAN_ROOM=1), then
+#    publishes platform packages FIRST, main LAST, then runs EXECUTED
+#    post-publish verification against the registry (fileCount,
+#    optionalDependencies pins). npm prompts for your 2FA OTP per package.
 ./scripts/publish-release.sh --publish
 
-# 5. Verify on the registry, then deprecate the superseded old-model version.
-npm view qnsqy@<version> optionalDependencies
-npm deprecate qnsqy@7.2.20 "Superseded by 7.2.21 (optionalDependencies model, no install script)."
+# 5. Deprecate the superseded version (never unpublish).
+npm deprecate qnsqy@<old> "Superseded by <version>."
+#    Also deprecate both platform packages at <old>.
 #    On a clean machine: npm install -g qnsqy && qnsqy version
+
+# 6. ~1-2 hours later (Socket scans lag the registry), verify the Socket
+#    scores actually scanned and did not regress:
+./scripts/verify-socket-scores.sh <version>
+#    Exit 2 = not scanned yet, retry later. Exit 1 = regression, fix
+#    forward with a patch bump.
 ```
+
+**Release cadence policy:** at least one release per month, even if it
+only refreshes packaging or documentation, paired with a commit to the
+public wrapper repo (github.com/quantumsequrity/qnsqy). Socket's
+Maintenance score is driven by versions-per-year and repo activity;
+letting the package go quiet erodes it.
 
 If `lib/manifest.json` has drifted from what the CDN actually serves, step
 1 aborts with a SHA-256 mismatch. Fix the manifest from
