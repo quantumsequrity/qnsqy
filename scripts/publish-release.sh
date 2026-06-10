@@ -91,10 +91,15 @@ node -e '
 
 VERSION="$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).version)' "$WRAPPER_DIR/package.json")"
 
-# Validate the dist-tag, and refuse to push a semver prerelease to 'latest'.
+# Validate the dist-tag (full string, allowlisted), and refuse to push a
+# semver prerelease to 'latest'. A typoed tag like 'lateest' would otherwise
+# publish silently without touching latest.
 case "$NPM_TAG" in
-  [a-z]*) : ;;
-  *) die "invalid --tag '$NPM_TAG' (must be a non-empty dist-tag starting with a lowercase letter)." ;;
+  latest|next|beta) : ;;
+  *)
+    printf '%s' "$NPM_TAG" | grep -Eq '^[a-z][a-z0-9-]{0,31}$' \
+      || die "invalid --tag '$NPM_TAG' (must match ^[a-z][a-z0-9-]{0,31}$)."
+    die "dist-tag '$NPM_TAG' is not in the allowlist (latest, next, beta). Add it to publish-release.sh deliberately if intended." ;;
 esac
 case "$VERSION" in
   *-*)
@@ -113,6 +118,20 @@ if [ -n "$BIN_VERSION" ] && [ "$BIN_VERSION" != "$VERSION" ]; then
     die "version alignment required but $AMSG"
   fi
   info "NOTE (version skew): $AMSG"
+fi
+
+# Preflight gate: runs in THIS invocation, immediately before publishing.
+# 7.2.23 shipped without its intended SECURITY.md because the tree changed
+# between the dry-run invocation and the --publish invocation; the gate
+# closes that hole. See scripts/preflight-check.sh for the full check list.
+info "running preflight gate..."
+"$SCRIPT_DIR/preflight-check.sh" || die "preflight gate failed. Nothing was published."
+
+# Clean-room install test (registry-free reconstruction of the npm tree).
+# Mandatory for live publishes; skippable only with SKIP_CLEAN_ROOM=1.
+if [ "$PUBLISH" -eq 1 ] && [ "${SKIP_CLEAN_ROOM:-0}" != "1" ]; then
+  info "running local clean-room install test..."
+  "$SCRIPT_DIR/local-clean-room-test.sh" || die "clean-room test failed. Nothing was published."
 fi
 
 publish_one() {
@@ -145,8 +164,42 @@ publish_one "$WIN_PKG" "@quantumsequrity/qnsqy-win32-x64"
 publish_one "$WRAPPER_DIR" "qnsqy"
 
 if [ "$PUBLISH" -eq 1 ]; then
-  info "ALL THREE PUBLISHED at $VERSION."
-  info "Verify: npm view qnsqy@$VERSION optionalDependencies"
+  info "ALL THREE PUBLISHED at $VERSION. Running post-publish verification..."
+
+  # Executed verification against the live registry (was advisory-only
+  # before; nothing was actually checked after 7.2.22/7.2.23 published).
+  sleep 10  # registry propagation
+  node -e '
+    const { execSync } = require("child_process");
+    const ver = process.argv[1];
+    const expect = {
+      "qnsqy": 6,
+      "@quantumsequrity/qnsqy-linux-x64": 5,
+      "@quantumsequrity/qnsqy-win32-x64": 5,
+    };
+    const errs = [];
+    for (const [name, fileCount] of Object.entries(expect)) {
+      let v;
+      try {
+        v = JSON.parse(execSync(`npm view ${name}@${ver} dist.fileCount dist.shasum dist-tags --json`, { encoding: "utf8" }));
+      } catch (e) { errs.push(`${name}@${ver}: npm view failed (${e.message.split("\n")[0]})`); continue; }
+      const fc = v["dist.fileCount"];
+      if (fc !== fileCount) errs.push(`${name}@${ver}: fileCount ${fc}, expected ${fileCount} (a files-array entry was silently dropped?)`);
+      else console.log(`verified ${name}@${ver}: fileCount ${fc} OK`);
+    }
+    let od;
+    try {
+      od = JSON.parse(execSync(`npm view qnsqy@${ver} optionalDependencies --json`, { encoding: "utf8" }));
+      for (const dep of ["@quantumsequrity/qnsqy-linux-x64", "@quantumsequrity/qnsqy-win32-x64"]) {
+        if (od[dep] !== ver) errs.push(`qnsqy@${ver} optionalDependencies[${dep}] = ${od[dep]}, expected ${ver}`);
+      }
+    } catch (e) { errs.push(`optionalDependencies check failed: ${e.message.split("\n")[0]}`); }
+    if (errs.length) { console.error("POST-PUBLISH VERIFICATION FAILED:\n - " + errs.join("\n - ")); process.exit(1); }
+    console.log("post-publish verification passed.");
+  ' "$VERSION" || die "POST-PUBLISH VERIFICATION FAILED. Investigate immediately; fix forward with a patch bump (never unpublish)."
+
+  info "Deprecate the superseded version: npm deprecate qnsqy@<old> \"Superseded by $VERSION\" (and both platform packages)."
+  info "Socket scores: run scripts/verify-socket-scores.sh $VERSION after ~1-2h (Socket scans lag publishes)."
   info "Smoke test a fresh global install on a clean machine: npm install -g qnsqy && qnsqy version"
 else
   info "DRY-RUN complete. Review the file lists above (each platform package"

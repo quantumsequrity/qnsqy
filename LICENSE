@@ -1,13 +1,14 @@
-QNSQY is proprietary software. (c) 2026 Quantum Sequrity.
+QNSQY PROPRIETARY LICENSE
 
-The QNSQY binary, delivered as a platform-specific optional dependency of
-this package, is licensed under the QNSQY end-user license agreement,
-available at https://quantumsequrity.com/terms.
+Copyright (c) 2026 Quantum Sequrity. All rights reserved.
 
-This npm wrapper package (the JavaScript shim, README, and LICENSE) is
-licensed for use solely to facilitate installation of the QNSQY binary,
-which is delivered as a platform-specific optional dependency. Redistribution
-of the wrapper without the binary, or modification of the wrapper to run a
-different binary, is not permitted.
+1. The QNSQY binary, delivered as a platform-specific optional dependency
+   of this package, is licensed under the QNSQY end-user license agreement:
+   https://quantumsequrity.com/terms
 
-Source-available for security audit on request: security@quantumsequrity.com.
+2. This npm wrapper package (the JavaScript shim, README, SECURITY.md, and
+   this LICENSE) may be used only to install and run the official QNSQY
+   binary. No other rights are granted.
+
+3. Source access for security audit is available on request:
+   security@quantumsequrity.com

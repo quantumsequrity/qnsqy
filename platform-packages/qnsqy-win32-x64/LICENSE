@@ -1,12 +1,15 @@
-QNSQY is proprietary software. (c) 2026 Quantum Sequrity.
+QNSQY PROPRIETARY LICENSE
 
-This package contains the prebuilt QNSQY binary for Windows x86_64, licensed
-under the QNSQY end-user license agreement, available at
-https://quantumsequrity.com/terms.
+Copyright (c) 2026 Quantum Sequrity. All rights reserved.
 
-This package is published solely as an optional dependency of the `qnsqy`
-npm package, to deliver the platform-specific binary. Redistribution of the
-binary outside that channel, or modification to alter the shipped binary, is
-not permitted.
+1. This package contains the prebuilt QNSQY binary for Windows x86_64,
+   licensed under the QNSQY end-user license agreement:
+   https://quantumsequrity.com/terms
 
-Source-available for security audit on request: security@quantumsequrity.com.
+2. This package exists solely as an optional dependency of the qnsqy npm
+   package, to deliver the platform binary. You may use it only through
+   that channel, to install and run the official QNSQY binary. No other
+   rights are granted.
+
+3. Source access for security audit is available on request:
+   security@quantumsequrity.com

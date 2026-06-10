@@ -35,6 +35,13 @@ command -v node >/dev/null 2>&1 || die "node required."
 [ "$(uname -s)" = "Linux" ] || die "this host-run test expects Linux (to exec the linux binary)."
 [ -f "$LINUX_PKG/qnsqy" ] || die "linux binary not staged. Run ./scripts/stage-platform-packages.sh linux first."
 
+# Expected version string from the BINARY (not the npm version, which may be
+# ahead when only packaging changes). Derived from the staging manifest so a
+# binary rebuild does not silently break subtests 1-2 with a stale literal.
+BIN_VERSION="$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).qnsqy_version||""))' "$WRAPPER_DIR/lib/manifest.json")"
+[ -n "$BIN_VERSION" ] || die "could not read qnsqy_version from lib/manifest.json."
+BIN_VERSION_RE="$(printf '%s' "$BIN_VERSION" | sed 's/\./\\./g')"
+
 TESTROOT="$(mktemp -d "${TMPDIR:-/tmp}/qnsqy-cleanroom.XXXXXX")"
 trap 'rm -rf "$TESTROOT"' EXIT
 TARBALLS="$TESTROOT/tarballs"
@@ -86,7 +93,7 @@ set +e
 OUT="$( "$NM/.bin/qnsqy" version 2>&1 )"; RC=$?
 set -e
 printf '    output: %s\n' "$(printf '%s' "$OUT" | head -n1)"
-if [ "$RC" -eq 0 ] && printf '%s' "$OUT" | grep -qi '7\.2\.20'; then
+if [ "$RC" -eq 0 ] && printf '%s' "$OUT" | grep -qi "$BIN_VERSION_RE"; then
   ok "qnsqy version resolved the sibling platform package and ran (exit 0, version printed)"
 else
   bad "qnsqy version did not run cleanly (exit $RC). Output: $OUT"
@@ -101,7 +108,7 @@ cp "$LINUX_PKG/qnsqy" "$PRESTAGED"; chmod 755 "$PRESTAGED"
 set +e
 OUT2="$( QNSQY_BINARY_PATH="$PRESTAGED" "$NM2/.bin/qnsqy" version 2>&1 )"; RC2=$?
 set -e
-if [ "$RC2" -eq 0 ] && printf '%s' "$OUT2" | grep -qi '7\.2\.20'; then
+if [ "$RC2" -eq 0 ] && printf '%s' "$OUT2" | grep -qi "$BIN_VERSION_RE"; then
   ok "escape hatch ran the pre-staged binary without any platform package"
 else
   bad "escape hatch failed (exit $RC2). Output: $OUT2"

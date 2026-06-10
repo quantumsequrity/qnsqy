@@ -22,7 +22,11 @@
     "model-context-protocol"
   ],
   "homepage": "https://quantumsequrity.com",
-  "bugs": "https://quantumsequrity.com/contact",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quantumsequrity/qnsqy.git"
+  },
+  "bugs": "https://github.com/quantumsequrity/qnsqy/issues",
   "license": "SEE LICENSE IN LICENSE",
   "author": "Quantum Sequrity",
   "bin": {

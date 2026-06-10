@@ -13,7 +13,12 @@
     "x64"
   ],
   "homepage": "https://quantumsequrity.com",
-  "bugs": "https://quantumsequrity.com/contact",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quantumsequrity/qnsqy.git",
+    "directory": "platform-packages/qnsqy-linux-x64"
+  },
+  "bugs": "https://github.com/quantumsequrity/qnsqy/issues",
   "license": "SEE LICENSE IN LICENSE",
   "author": "Quantum Sequrity",
   "os": [
