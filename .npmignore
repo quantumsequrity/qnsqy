@@ -1,0 +1,16 @@
+# The main package's `files` allowlist (bin/, README.md, LICENSE) already
+# decides what ships. These entries are belt-and-suspenders so nothing in
+# the working tree can leak into the published main tarball.
+PUBLISHING.md
+scripts/
+platform-packages/
+lib/
+.stage-tmp/
+.gitignore
+*.log
+*.tmp
+*.tgz
+.DS_Store
+node_modules/
+test/
+*.test.js

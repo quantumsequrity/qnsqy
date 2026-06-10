@@ -1,0 +1,12 @@
+QNSQY is proprietary software. (c) 2026 Quantum Sequrity.
+
+This package contains the prebuilt QNSQY binary for Linux x86_64, licensed
+under the QNSQY end-user license agreement, available at
+https://quantumsequrity.com/terms.
+
+This package is published solely as an optional dependency of the `qnsqy`
+npm package, to deliver the platform-specific binary. Redistribution of the
+binary outside that channel, or modification to alter the shipped binary, is
+not permitted.
+
+Source-available for security audit on request: security@quantumsequrity.com.

@@ -1,0 +1,5 @@
+{
+  "_comment": "SHA-256 of each platform binary, baked into the main qnsqy package (the trust root the user installs). The shim verifies the resolved platform binary against these before exec. Stamped by scripts/stage-platform-packages.sh at release time; empty values are placeholders that make the shim fail closed.",
+  "linux-x64": "f40dc28c70d49670e39537b020780481fdf46a535f11e9f65131bd81249eadc0",
+  "win32-x64": "1383df812dff16cc593b0caab6bbe6092184a42f212aac8d13e42ed6a52b8f38"
+}

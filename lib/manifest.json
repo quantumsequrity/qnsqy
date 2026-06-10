@@ -1,0 +1,23 @@
+{
+  "qnsqy_version": "7.2.20",
+  "generated_at": "2026-06-01T11:00Z",
+  "source": "freshly built from qs-ultra/ source tree 2026-06-01 (Ubuntu 22.04 / glibc 2.35 container build); matches website-YC/download.md SHA-256 Checksums (v7.2.20)",
+  "platforms": {
+    "linux-x64": {
+      "url": "https://cdn.quantumsequrity.com/linux/qnsqy_7.2.20-1_amd64.deb",
+      "filename": "qnsqy_7.2.20-1_amd64.deb",
+      "format": "deb",
+      "extract": "deb",
+      "sha256": "93caee47f8af7c09f73373771ab116019d04903d6958369e865c77638e600afc",
+      "binary_path_in_archive": "usr/bin/qnsqy"
+    },
+    "win32-x64": {
+      "url": "https://cdn.quantumsequrity.com/windows/qnsqy-7.2.20-x86_64.exe",
+      "filename": "qnsqy-7.2.20-x86_64.exe",
+      "format": "exe",
+      "extract": "passthrough",
+      "sha256": "1383df812dff16cc593b0caab6bbe6092184a42f212aac8d13e42ed6a52b8f38",
+      "binary_path_in_archive": "qnsqy-7.2.20-x86_64.exe"
+    }
+  }
+}

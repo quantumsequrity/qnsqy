@@ -1,0 +1,37 @@
+{
+  "name": "@quantumsequrity/qnsqy-win32-x64",
+  "version": "7.2.23",
+  "description": "Prebuilt QNSQY binary for Windows x86_64. Installed automatically as an optional dependency of the `qnsqy` package. Do not install directly.",
+  "keywords": [
+    "qnsqy",
+    "post-quantum",
+    "cryptography",
+    "pqc",
+    "quantum-safe",
+    "prebuilt-binary",
+    "windows",
+    "win32",
+    "x64"
+  ],
+  "homepage": "https://quantumsequrity.com",
+  "bugs": "https://quantumsequrity.com/contact",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Quantum Sequrity",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "preferUnplugged": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "qnsqy.exe",
+    "SECURITY.md"
+  ]
+}

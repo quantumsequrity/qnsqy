@@ -1,0 +1,44 @@
+{
+  "name": "qnsqy",
+  "version": "7.2.23",
+  "description": "Post-quantum cryptography tool. NIST FIPS 203 / 204 / 205 algorithms hybridized with classical X25519, Ed25519, AES-256-GCM. Local-only execution. 84 MCP tools for AI agents.",
+  "keywords": [
+    "post-quantum",
+    "cryptography",
+    "encryption",
+    "ml-kem",
+    "ml-dsa",
+    "slh-dsa",
+    "fips-203",
+    "fips-204",
+    "fips-205",
+    "hybrid",
+    "pqc",
+    "quantum-safe",
+    "quantum-resistant",
+    "harvest-now-decrypt-later",
+    "hndl",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "homepage": "https://quantumsequrity.com",
+  "bugs": "https://quantumsequrity.com/contact",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Quantum Sequrity",
+  "bin": {
+    "qnsqy": "bin/qnsqy.js"
+  },
+  "optionalDependencies": {
+    "@quantumsequrity/qnsqy-linux-x64": "7.2.23",
+    "@quantumsequrity/qnsqy-win32-x64": "7.2.23"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ]
+}

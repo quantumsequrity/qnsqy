@@ -1,0 +1,29 @@
+name: sigstore-sign
+# Smoke test: prove keyless Sigstore signing works from this repo's
+# GitHub Actions OIDC identity. The real release-signing workflow will
+# replace this once binaries flow through it.
+on:
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sigstore/cosign-installer@v3
+      - name: Keyless sign smoke test
+        run: |
+          cosign version
+          cosign sign-blob --yes README.md \
+            --output-signature README.md.sig \
+            --output-certificate README.md.pem
+          echo "--- signature and certificate produced ---"
+          ls -la README.md.sig README.md.pem
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sigstore-smoke
+          path: |
+            README.md.sig
+            README.md.pem
