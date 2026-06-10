@@ -1,0 +1,41 @@
+name: sign-release
+# Keyless Sigstore signing of the QNSQY release checksums manifest.
+# The signature certificate is bound to THIS repository's workflow OIDC
+# identity and every signature is recorded in the public Rekor
+# transparency log. This is an independent layer on top of the offline
+# ML-DSA-87 release signature (checksums.txt.sig); an attacker must
+# defeat both, plus SHA-256 pinning, to ship a tampered artifact.
+on:
+  workflow_dispatch:
+  push:
+    paths: ['release/checksums.txt']
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign checksums manifest (keyless, Rekor-logged)
+        run: |
+          test -f release/checksums.txt
+          cosign sign-blob --yes release/checksums.txt \
+            --output-signature release/checksums.txt.cosign.sig \
+            --output-certificate release/checksums.txt.cosign.pem
+          echo "--- rekor-logged signature created ---"
+      - name: Self-verify before publishing artifacts
+        run: |
+          cosign verify-blob \
+            --certificate-identity-regexp 'https://github.com/quantumsequrity/qnsqy/\.github/workflows/sign-release\.yml@.*' \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --signature release/checksums.txt.cosign.sig \
+            --certificate release/checksums.txt.cosign.pem \
+            release/checksums.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-signatures
+          path: |
+            release/checksums.txt.cosign.sig
+            release/checksums.txt.cosign.pem
