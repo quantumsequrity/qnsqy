@@ -1,12 +1,12 @@
-# QNSQY v7.2.24 SHA-256 Checksums
-# Generated: 2026-06-12T11:15:48Z
+# QNSQY v7.2.25 SHA-256 Checksums
+# Generated: 2026-06-13T03:43:17Z
 # This header is part of the ML-DSA-87-signed payload (checksums.txt.sig).
 # Verifiers SHOULD reject this file if the version above is older than
 # the version they were told to install (rollback protection).
 # Format: <sha256 hex (lowercase)><two spaces><filename>
-d4e34e59f4d17237ccf5a3451f6557f33b5fa41acc0b8c624a2370b0f680fd10  linux/qnsqy_7.2.24-1_amd64.deb
-f3247ae75a32e20eb8e8b9a628f7f176f1ebbadf21f51822cb98758260905433  linux/qnsqy-7.2.24-1.x86_64.rpm
-2aab9a6cddf40178616c2378f0c379d7d8d68c5b61c9b9b74260f08057bbe24c  linux/qnsqy-7.2.24-x86_64-linux
-bd0d7836bd6ea7c850a394069e362c414e7a6c76cd877a47e47bfa8fd4543313  linux/qnsqy-7.2.24-x86_64-linux.tar.gz
-fad2f0aaa80457f301e7d65f08e94bdbe0ce85cfc76868a4358049bbe0706eaf  windows/qnsqy-7.2.24-x86_64.exe
-2aa88231f126e314ca5ec0df7e75348139aa42c4684ad667629b48ea210bdacb  windows/qnsqy-setup-7.2.24.exe
+7417d175f2392e8080b6b6bfbf5adbc1d7a283ca59624273a77c3db47e7eca87  linux/qnsqy_7.2.25-1_amd64.deb
+40f07517cc5c3505a21bcf17f4cff42a376188ef85f77998d267dd6e38addd8a  linux/qnsqy-7.2.25-1.x86_64.rpm
+32d1290452f435bfac985eacb2188957e09de2ae1c61ec2306d08290de06d854  linux/qnsqy-7.2.25-x86_64-linux
+9b0479c16ae96e80dbaad7aed2672466289423fb3ef8ac358e6541d0b47e5818  linux/qnsqy-7.2.25-x86_64-linux.tar.gz
+ad37b52804bcb0d9f09ee2ed9d67334811352a61495d8250e07c6cf9dd39885e  windows/qnsqy-7.2.25-x86_64.exe
+3e6333698702398c6325f2b35b6013f6d3da9267f200871a40b87b2a27d15ed3  windows/qnsqy-setup-7.2.25.exe
