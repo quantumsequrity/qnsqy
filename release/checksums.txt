@@ -4,7 +4,7 @@
 # Verifiers SHOULD reject this file if the version above is older than
 # the version they were told to install (rollback protection).
 # Format: <sha256 hex (lowercase)><two spaces><filename>
-d095e423b45510ab2c8ba88ea670a9d5a3f432a077b99c44c3e5e67574334b5e  linux/qnsqy_7.2.28-1_amd64.deb
+be0d268f097e1e4f16ff2bc870f972ae0294f7d7452773b63c39059eefbf4ee1  linux/qnsqy_7.2.28-1_amd64.deb
 89e7a8a33cc650ac124a92a7411603d868958c8d34bf93fb9e156047fe6fa02e  linux/qnsqy-7.2.28-1.x86_64.rpm
 05ac405580fe98f9e2ea5b53471d53cd28f9ddeddd3dcdd880c1118eddd77550  linux/qnsqy-7.2.28-x86_64-linux
 8a3627beee1c8c87db04ba4d70b8ce48f29ac46bcb57679b555d7105aa728838  linux/qnsqy-7.2.28-x86_64-linux.tar.gz
