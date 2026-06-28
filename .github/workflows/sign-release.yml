@@ -25,6 +25,14 @@ jobs:
             --output-signature release/checksums.txt.cosign.sig \
             --output-certificate release/checksums.txt.cosign.pem
           echo "--- rekor-logged signature created ---"
+          # Normalize the cert to a real PEM. Some cosign builds emit the
+          # certificate as base64-of-PEM; cosign verify-blob tolerates it, but it
+          # breaks `openssl x509 -in` and the website verify one-liner's intent.
+          if ! head -1 release/checksums.txt.cosign.pem | grep -q 'BEGIN CERTIFICATE'; then
+            base64 -d release/checksums.txt.cosign.pem > release/checksums.txt.cosign.pem.norm
+            mv release/checksums.txt.cosign.pem.norm release/checksums.txt.cosign.pem
+            echo "--- normalized base64-of-PEM cert to raw PEM ---"
+          fi
       - name: Self-verify before publishing artifacts
         run: |
           cosign verify-blob \
