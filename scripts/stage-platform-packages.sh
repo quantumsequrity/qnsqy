@@ -94,7 +94,10 @@ read_slot() {
 download_and_verify() {
   local url="$1" expected="$2" out="$3"
   info "downloading $url"
-  curl -fsSL --proto '=https' --max-time 600 -o "$out" "$url" \
+  # Resilient download: large binaries (45MB exe) over flaky links drop
+  # mid-transfer; resume (-C -) + retry-all-errors make staging robust.
+  # (LAUNCH 2026-06-28: 7.2.33 npm staging failed on a single exe GET drop.)
+  curl -fsSL --proto '=https' --max-time 600 --retry 5 --retry-delay 3 --retry-all-errors -C - -o "$out" "$url" \
     || die "download failed for $url"
   local actual
   actual="$(sha256sum "$out" | awk '{print $1}')"

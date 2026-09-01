@@ -166,6 +166,42 @@ function resolvePlatformBinary() {
 
 const binPath = resolveFromEnv() || resolvePlatformBinary();
 
+// glibc guard: the published Linux binary is built against glibc 2.35
+// (Ubuntu 22.04). On older glibc (Debian 11, Ubuntu 20.04, Rocky/AlmaLinux 9)
+// the kernel loader fails with a raw "GLIBC_2.xx not found". Detect that up
+// front and print a clear, actionable message instead. Done HERE (runtime),
+// not as an npm install script, because this wrapper deliberately ships no
+// lifecycle scripts (supply-chain policy; enforced by the clean-room gate).
+// Conservative: only blocks on POSITIVELY-detected glibc < 2.35; musl/unknown
+// falls through and the loader's own error remains the backstop.
+function checkGlibcOrFail() {
+  if (process.platform !== 'linux') return;
+  let v = null;
+  try {
+    const rep = process.report && process.report.getReport && process.report.getReport();
+    if (rep && rep.header && rep.header.glibcVersionRuntime) v = String(rep.header.glibcVersionRuntime);
+  } catch (e) {}
+  if (!v) {
+    try {
+      const out = require('node:child_process').execSync('getconf GNU_LIBC_VERSION 2>/dev/null', { encoding: 'utf8' });
+      const m = out.match(/(\d+)\.(\d+)/);
+      if (m) v = m[1] + '.' + m[2];
+    } catch (e) {}
+  }
+  if (!v) return; // musl/Alpine or undetectable -> let the loader error be the backstop
+  const p = v.split('.');
+  const major = parseInt(p[0], 10) || 0;
+  const minor = parseInt(p[1], 10) || 0;
+  if (major < 2 || (major === 2 && minor < 35)) {
+    fail(
+      'this system has glibc ' + v + ', but qnsqy requires glibc >= 2.35.\n' +
+      '  Supported:   Ubuntu 22.04+, Debian 12+, Fedora 40+, AlmaLinux 10+, RHEL 9.4+.\n' +
+      '  Unsupported: Debian 11, Ubuntu 20.04, Rocky/AlmaLinux 9 (glibc < 2.35).'
+    );
+  }
+}
+checkGlibcOrFail();
+
 const child = spawn(binPath, process.argv.slice(2), { stdio: 'inherit' });
 
 function forwardSignal(sig) {

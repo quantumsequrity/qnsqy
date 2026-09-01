@@ -1,23 +1,23 @@
 {
-  "qnsqy_version": "7.2.20",
-  "generated_at": "2026-06-01T11:00Z",
-  "source": "freshly built from qs-ultra/ source tree 2026-06-01 (Ubuntu 22.04 / glibc 2.35 container build); matches website-YC/download.md SHA-256 Checksums (v7.2.20)",
+  "qnsqy_version": "7.2.40",
+  "generated_at": "2026-08-29T04:09Z",
+  "source": "freshly built for v7.2.40: Linux from the glibc-2.35 container build, Windows from the cross-build; matches website-YC/downloads/ SHA-256 checksums (v7.2.40)",
   "platforms": {
     "linux-x64": {
-      "url": "https://cdn.quantumsequrity.com/linux/qnsqy_7.2.20-1_amd64.deb",
-      "filename": "qnsqy_7.2.20-1_amd64.deb",
+      "url": "https://cdn.quantumsequrity.com/linux/qnsqy_7.2.40-1_amd64.deb",
+      "filename": "qnsqy_7.2.40-1_amd64.deb",
       "format": "deb",
       "extract": "deb",
-      "sha256": "93caee47f8af7c09f73373771ab116019d04903d6958369e865c77638e600afc",
+      "sha256": "32c4a1478044ae6fcdf603e88bc8daa5e5c3be482e5efc9a4ee50a8e1de68f29",
       "binary_path_in_archive": "usr/bin/qnsqy"
     },
     "win32-x64": {
-      "url": "https://cdn.quantumsequrity.com/windows/qnsqy-7.2.20-x86_64.exe",
-      "filename": "qnsqy-7.2.20-x86_64.exe",
+      "url": "https://cdn.quantumsequrity.com/windows/qnsqy-7.2.40-x86_64.exe",
+      "filename": "qnsqy-7.2.40-x86_64.exe",
       "format": "exe",
       "extract": "passthrough",
-      "sha256": "1383df812dff16cc593b0caab6bbe6092184a42f212aac8d13e42ed6a52b8f38",
-      "binary_path_in_archive": "qnsqy-7.2.20-x86_64.exe"
+      "sha256": "3adb36eb0fabf6e0701e0505874fd4d178e11d076fa3b5e2984bea1b461fd982",
+      "binary_path_in_archive": "qnsqy-7.2.40-x86_64.exe"
     }
   }
 }

@@ -65,7 +65,7 @@ https://quantumsequrity.com/docs.html.
 
 | Platform        | Status                                                                           |
 |-----------------|----------------------------------------------------------------------------------|
-| Linux x86_64    | Supported. Requires glibc 2.35+ (Ubuntu 22.04+, Debian 12+, Fedora 40+, AlmaLinux 10). |
+| Linux x86_64    | Supported. Requires glibc 2.35+ (Ubuntu 22.04+, Debian 12+, Fedora 40-44, AlmaLinux 10, RHEL 9.4+). On a sub-floor distro the wrapper fail-closes at run time with a clear glibc-version message (it does not crash). |
 | Windows x86_64  | Supported. Windows 10 1809+ and Windows 11.                                      |
 | macOS           | Not shipping yet. Target Q3 2026. `npm install` succeeds; `qnsqy` prints a not-yet-shipping message at run time. |
 | ARM (any OS)    | Not shipping yet. `npm install` succeeds; `qnsqy` prints a not-yet-shipping message at run time. |
@@ -140,14 +140,14 @@ download page.
 
 ```
 # Linux DEB
-sha256sum qnsqy_7.2.20-1_amd64.deb
+sha256sum qnsqy_7.2.40-1_amd64.deb
 # Expected:
-# 93caee47f8af7c09f73373771ab116019d04903d6958369e865c77638e600afc
+# ef3e0ae43706d53ede1c487e9447bc6d683bb71c32eb5fac34425706f5a8305f
 
 # Windows standalone
-certutil -hashfile qnsqy-7.2.20-x86_64.exe SHA256
+certutil -hashfile qnsqy-7.2.40-x86_64.exe SHA256
 # Expected:
-# 1383df812dff16cc593b0caab6bbe6092184a42f212aac8d13e42ed6a52b8f38
+# 6db1cb48fa644e3f80ba871660fe7762089ef3085696948210f823696deb2bbe
 ```
 
 The canonical hash list is published at

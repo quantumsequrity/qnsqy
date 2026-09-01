@@ -1,6 +1,6 @@
 {
   "name": "@quantumsequrity/qnsqy-linux-x64",
-  "version": "7.2.23",
+  "version": "7.2.40",
   "description": "Prebuilt QNSQY binary for Linux x86_64. Installed automatically as an optional dependency of the `qnsqy` package. Do not install directly.",
   "keywords": [
     "qnsqy",

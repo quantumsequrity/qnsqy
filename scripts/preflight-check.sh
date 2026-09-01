@@ -64,7 +64,7 @@ $(printf '%s\n' "$actual" | sed 's/^/    /')"
 }
 
 check_pack "$WRAPPER_DIR" "qnsqy" \
-  "LICENSE" "README.md" "SECURITY.md" "bin/integrity.json" "bin/qnsqy.js" "package.json"
+  "LICENSE" "README.md" "SECURITY.md" "THIRD-PARTY-NOTICES.txt" "bin/integrity.json" "bin/qnsqy.js" "package.json"
 check_pack "$LINUX_PKG" "@quantumsequrity/qnsqy-linux-x64" \
   "LICENSE" "README.md" "SECURITY.md" "package.json" "qnsqy"
 check_pack "$WIN_PKG" "@quantumsequrity/qnsqy-win32-x64" \

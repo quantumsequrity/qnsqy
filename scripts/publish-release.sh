@@ -137,6 +137,13 @@ fi
 publish_one() {
   local dir="$1" name="$2"
   if [ "$PUBLISH" -eq 1 ]; then
+    # Idempotent re-run: npm forbids re-publishing an existing version, so if
+    # this exact version is already on the registry (e.g. a prior --go run
+    # published npm but then failed a later gate), skip it instead of aborting.
+    if npm view "$name@$VERSION" version >/dev/null 2>&1; then
+      info "SKIP $name@$VERSION: already on the registry (idempotent re-run)."
+      return 0
+    fi
     info "PUBLISHING $name@$VERSION (tag: $NPM_TAG) ..."
     ( cd "$dir" && npm publish --access public --tag "$NPM_TAG" ) \
       || die "npm publish failed for $name. STOP. Do NOT publish later packages until this is resolved."
@@ -173,7 +180,7 @@ if [ "$PUBLISH" -eq 1 ]; then
     const { execSync } = require("child_process");
     const ver = process.argv[1];
     const expect = {
-      "qnsqy": 6,
+      "qnsqy": 7,
       "@quantumsequrity/qnsqy-linux-x64": 5,
       "@quantumsequrity/qnsqy-win32-x64": 5,
     };

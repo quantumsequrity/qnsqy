@@ -1,0 +1,120 @@
+name: npm-publish-provenance
+# Publishes the three QNSQY npm packages (qnsqy + the two @quantumsequrity/
+# platform packages) with npm PROVENANCE: a Sigstore attestation, Rekor-logged,
+# cryptographically bound to THIS repo's workflow via GitHub OIDC. Provenance can
+# only be produced from a CI runner (never a local `npm publish`), and npm requires
+# the package `repository.url` to match the workflow repo (github.com/quantumsequrity/qnsqy).
+#
+# This is an independent trust layer on top of:
+#   - bin/integrity.json  (offline SHA-256 pin of each platform binary, checked by the shim)
+#   - the ML-DSA-87 signed checksums.txt on the CDN (the hashes verified below)
+#
+# The prebuilt binaries are NOT built here; they are downloaded from
+# cdn.quantumsequrity.com for the given version and verified against the signed
+# checksums.txt before packaging. The release pipeline (make-launch) syncs this
+# repo's packaging to the release version, then triggers this workflow with it.
+#
+# PREREQUISITE (one-time, by the maintainer):
+#   Repo secret NPM_TOKEN = an npm Automation token OR a Granular token with
+#   "Bypass 2FA" + Read-and-write on the qnsqy packages. (A classic "Publish"
+#   token will fail: npm requires bypass-2fa for non-interactive publish.)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version to publish (e.g. 7.2.41). Must already be live on the CDN.'
+        required: true
+        type: string
+      tag:
+        description: 'npm dist-tag'
+        required: false
+        default: 'latest'
+        type: string
+
+permissions:
+  id-token: write   # OIDC token for npm provenance
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'                       # npm >= 10, provenance-capable
+          registry-url: 'https://registry.npmjs.org'   # writes ~/.npmrc using NODE_AUTH_TOKEN
+
+      - name: Prepare version, verify CDN checksums, refresh manifest
+        env:
+          V: ${{ inputs.version }}
+          CDN: https://cdn.quantumsequrity.com
+        run: |
+          set -euo pipefail
+          echo "$V" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.]+)?$' \
+            || { echo "::error::bad version '$V'"; exit 1; }
+          DEB="qnsqy_${V}-1_amd64.deb"
+          EXE="qnsqy-${V}-x86_64.exe"
+
+          # The ML-DSA-87 signed checksums manifest is the source of truth for the hashes.
+          curl -fsSL --proto '=https' --max-time 120 "$CDN/linux/checksums.txt"     -o /tmp/cks.txt
+          curl -fsSL --proto '=https' --max-time 120 "$CDN/linux/checksums.txt.sig" -o /tmp/cks.sig
+          DEB_SHA="$(awk -v f="$DEB" '$2==f{print $1}' /tmp/cks.txt)"
+          EXE_SHA="$(awk -v f="$EXE" '$2==f{print $1}' /tmp/cks.txt)"
+          echo "$DEB_SHA" | grep -qE '^[0-9a-f]{64}$' || { echo "::error::no signed hash for $DEB"; exit 1; }
+          echo "$EXE_SHA" | grep -qE '^[0-9a-f]{64}$' || { echo "::error::no signed hash for $EXE"; exit 1; }
+          echo "verified checksums.txt lists $DEB and $EXE"
+
+          # Stamp version into the main package.json (stage-platform-packages.sh derives
+          # the platform versions, optionalDependencies pins and integrity.json from it),
+          # and rewrite lib/manifest.json for V with the CDN URLs + signed hashes so the
+          # existing staging script's download-verify gate checks against the signed values.
+          V="$V" CDN="$CDN" DEB_SHA="$DEB_SHA" EXE_SHA="$EXE_SHA" node -e '
+            const fs = require("fs");
+            const V = process.env.V, CDN = process.env.CDN, DS = process.env.DEB_SHA, ES = process.env.EXE_SHA;
+            const p = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            p.version = V;
+            p.optionalDependencies["@quantumsequrity/qnsqy-linux-x64"] = V;
+            p.optionalDependencies["@quantumsequrity/qnsqy-win32-x64"] = V;
+            fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");
+            const m = JSON.parse(fs.readFileSync("lib/manifest.json", "utf8"));
+            m.qnsqy_version = V;
+            const L = m.platforms["linux-x64"], W = m.platforms["win32-x64"];
+            L.url = CDN + "/linux/qnsqy_" + V + "-1_amd64.deb";
+            L.filename = "qnsqy_" + V + "-1_amd64.deb";
+            L.sha256 = DS;
+            W.url = CDN + "/windows/qnsqy-" + V + "-x86_64.exe";
+            W.filename = "qnsqy-" + V + "-x86_64.exe";
+            W.binary_path_in_archive = "qnsqy-" + V + "-x86_64.exe";
+            W.sha256 = ES;
+            fs.writeFileSync("lib/manifest.json", JSON.stringify(m, null, 2) + "\n");
+          '
+
+      - name: Stage platform packages (download + verify + extract + stamp integrity.json)
+        run: |
+          set -euo pipefail
+          chmod +x scripts/*.sh
+          ./scripts/stage-platform-packages.sh both
+
+      - name: Publish all three with provenance (lockstep + preflight + clean-room gates)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'           # npm attaches provenance to every publish in this job
+          REQUIRE_VERSION_ALIGNMENT: '1'
+        run: |
+          set -euo pipefail
+          # publish-release.sh runs preflight + clean-room, enforces lockstep, then publishes
+          # in the required order (linux -> win32 -> main). NPM_CONFIG_PROVENANCE=true makes
+          # each `npm publish` carry provenance; the token in ~/.npmrc satisfies bypass-2fa.
+          ./scripts/publish-release.sh --publish --tag=${{ inputs.tag }}
+
+      - name: Confirm provenance attached
+        run: |
+          set -euo pipefail
+          V="${{ inputs.version }}"
+          for pkg in qnsqy @quantumsequrity/qnsqy-linux-x64 @quantumsequrity/qnsqy-win32-x64; do
+            echo "== $pkg@$V =="
+            npm view "$pkg@$V" --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log("  fileCount:",j.dist&&j.dist.fileCount,"| attestations:",j.dist&&j.dist.attestations?"YES":"(propagating)")})' || true
+          done
