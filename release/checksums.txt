@@ -1,5 +1,7 @@
-6611ddc9ad93f55063e34bb1a802beac7c04e9ae93040f99129409665a0abc25  qnsqy-7.2.45-1.20261014171645.g588cc7cb.x86_64.rpm
+# QNSQY v7.2.45 SHA-256 Checksums (consumed by install.sh / install.ps1)
+# This header is part of the ML-DSA-87-signed payload (checksums.txt.sig).
+# Format: <sha256 hex (lowercase)><two spaces><filename>
 e6b3ac14241e97cd404a6de2c1708cd4154ecc93f712e359b8d8339a63b39572  qnsqy_7.2.45-1_amd64.deb
-ea1f0045e055c1202c5ebc3e3b8772c90c41f07d6a5298a732d6486ac715a24e  qnsqy-7.2.45.cdx.json
+6611ddc9ad93f55063e34bb1a802beac7c04e9ae93040f99129409665a0abc25  qnsqy-7.2.45-1.x86_64.rpm
 796b521532aa788a49b64129f7ac2f5451adc5f868723f0032fa318d3bd475d2  qnsqy-7.2.45-x86_64.exe
 34ffa2676cf58ffc14f6c24f7958885798bdba1c1ead0f19630af2b96a98f364  qnsqy-setup-7.2.45.exe
