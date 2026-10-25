@@ -8,6 +8,15 @@ ALL="$D/all-results.tsv"
 printf 'image\tphase\tcheck\tresult\tdetail\n' > "$ALL"
 n=0
 while IFS= read -r f; do tail -n +2 "$f" >> "$ALL"; n=$((n + 1)); done < <(find "$D" -name results.tsv | sort)
+# A job that failed before its checks ran (NEEDS: the workflow's needs context).
+if [ -n "${NEEDS:-}" ]; then
+  python3 -c '
+import json, sys
+for job, v in sorted(json.loads(sys.argv[1]).items()):
+    if v.get("result") != "success":
+        print("job\t%s\tresult\tFAIL\tthe job ended with %s; see its log" % (job, v.get("result")))
+' "$NEEDS" >> "$ALL"
+fi
 pass="$(awk -F'\t' 'NR>1 && $4=="PASS"' "$ALL" | wc -l)"
 fail="$(awk -F'\t' 'NR>1 && $4=="FAIL"' "$ALL" | wc -l)"
 info="$(awk -F'\t' 'NR>1 && $4=="INFO"' "$ALL" | wc -l)"

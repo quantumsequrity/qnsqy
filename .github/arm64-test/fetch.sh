@@ -10,7 +10,13 @@ CDN="${CDN:-https://cdn.quantumsequrity.com}"
 mkdir -p "$D" && D="$(cd "$D" && pwd)" && cd "$D" || exit 1
 : > "$D/fetch.log"
 r() { echo "RESULT|$1|$2|$3" | tee -a "$D/fetch.log"; }
-get() { curl -fsSL --retry 5 --retry-delay 5 --max-time 600 "$1" -o "$2"; }
+why() {   # why <url>: what the server answered, for the log
+  local h b
+  h="$(mktemp)"; b="$(mktemp)"
+  curl -sS -D "$h" -o "$b" --max-time 60 "$1" > /dev/null 2>&1
+  r "http-$(basename "$1")" INFO "$(head -1 "$h" | tr -d '\r') $(grep -iE '^(server|cf-ray|cf-mitigated|cf-cache-status|content-type):' "$h" | tr -d '\r' | tr '\n' ' ')title: $(grep -o '<title>[^<]*' "$b" | head -1 | cut -c8-)"
+}
+get() { curl -fsSL --retry 5 --retry-delay 5 --max-time 600 "$1" -o "$2" && return 0; why "$1"; return 1; }
 for dir in linux windows; do
   for f in checksums.txt checksums.txt.sig; do
     get "$CDN/$dir/$f" "$dir-$f" || { r fetch FAIL "$dir/$f"; exit 1; }
