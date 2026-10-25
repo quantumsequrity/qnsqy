@@ -1,0 +1,202 @@
+name: arm64-hardware-test
+# The current public Linux release of QNSQY on real ARM64 CPUs (GitHub's
+# arm64 runners), with the checks our release test matrix runs before every
+# release: installs from the live repository with signature checks on, on 13
+# distributions; offline smoke tests; the one-line installer from the live
+# site; the program on the runner itself, with both signed SHA-256 lists and
+# the file sandbox (Landlock); the desktop app on X11 and Wayland; the static
+# build on Alpine; and files encrypted on x86_64 decrypted on ARM64 and the
+# other way round. It downloads only public release files and uses no secrets.
+# Scripts: .github/arm64-test/ (README.md there).
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: arm64-hardware-test
+  cancel-in-progress: false
+env:
+  CDN: https://cdn.quantumsequrity.com
+  REPO_URL: https://cdn.quantumsequrity.com/repo
+
+jobs:
+  distro:
+    name: distro ${{ matrix.image }}
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - docker.io/library/almalinux:8
+          - docker.io/library/almalinux:9
+          - docker.io/library/almalinux:10
+          - docker.io/library/amazonlinux:2023
+          - registry.fedoraproject.org/fedora:44
+          - docker.io/library/debian:11
+          - docker.io/library/debian:12
+          - docker.io/library/debian:13
+          - docker.io/library/ubuntu:20.04
+          - docker.io/library/ubuntu:22.04
+          - docker.io/library/ubuntu:24.04
+          - docker.io/opensuse/leap:15.6
+          - registry.suse.com/bci/bci-base:15.6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Release files
+        run: bash .github/arm64-test/fetch.sh arm64 "$RUNNER_TEMP/rel"
+      - name: Install, smoke, bare program, one-line installer
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: bash .github/arm64-test/distro.sh "$IMAGE" "$(cat "$RUNNER_TEMP/rel/version")" "$RUNNER_TEMP/rel/bin/qnsqy" out
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: distro-${{ strategy.job-index }}
+          path: out/
+          retention-days: 30
+
+  x64-make:
+    name: x86_64 files for ARM64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Release files
+        run: bash .github/arm64-test/fetch.sh amd64 "$RUNNER_TEMP/rel"
+      - name: Sizes, speed, files for ARM64
+        run: bash .github/arm64-test/x64.sh make "$RUNNER_TEMP/rel" out x64-made
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: x64-make
+          path: out/
+          retention-days: 30
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: x64-made
+          path: x64-made/
+          retention-days: 30
+
+  host:
+    name: ARM64 runner itself
+    needs: x64-make
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: x64-made
+          path: x64-made
+      - name: Release files
+        run: bash .github/arm64-test/fetch.sh arm64 "$RUNNER_TEMP/rel"
+      - name: Lists, smoke, file sandbox, sizes, stress, speed, files both ways
+        run: bash .github/arm64-test/host.sh "$RUNNER_TEMP/rel" out x64-made arm-made
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: host
+          path: out/
+          retention-days: 30
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: arm-made
+          path: arm-made/
+          retention-days: 30
+
+  x64-check:
+    name: x86_64 decrypts ARM64 files
+    needs: host
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: arm-made
+          path: arm-made
+      - name: Release files
+        run: bash .github/arm64-test/fetch.sh amd64 "$RUNNER_TEMP/rel"
+      - name: Decrypt the ARM64 files
+        run: bash .github/arm64-test/x64.sh check "$RUNNER_TEMP/rel" out arm-made
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: x64-check
+          path: out/
+          retention-days: 30
+
+  gui:
+    name: desktop app ${{ matrix.image }}
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - docker.io/library/almalinux:9
+          - docker.io/library/ubuntu:24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: X11 and Wayland
+        env:
+          IMAGE: ${{ matrix.image }}
+        run: bash .github/arm64-test/gui.sh "$IMAGE" out
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: gui-${{ strategy.job-index }}
+          path: out/
+          retention-days: 30
+
+  alpine:
+    name: static build on Alpine
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Release files
+        run: bash .github/arm64-test/fetch.sh arm64 "$RUNNER_TEMP/rel"
+      - name: Static build checks
+        run: bash .github/arm64-test/alpine.sh "$RUNNER_TEMP/rel" out
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: alpine
+          path: out/
+          retention-days: 30
+
+  summary:
+    name: summary
+    needs: [distro, host, x64-check, gui, alpine]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: all
+      - name: All results
+        run: bash .github/arm64-test/summary.sh all
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: all-results
+          path: all/all-results.tsv
+          retention-days: 30
