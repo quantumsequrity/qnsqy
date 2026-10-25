@@ -2,9 +2,10 @@
 # files.sh <qnsqy> <mode> [dir]: password encryption on this CPU. Every run
 # has an empty HOME; the caller runs this with no network (unshare -n).
 #   sizes   round trips of edge sizes (0, 1, 4095, 4096, 4097 bytes, 1 MiB + 1,
-#           64 MiB), a changed byte and a wrong password refused
+#           64 MiB), a changed byte, a wrong password and a file over the
+#           free tier's 100 MB refused
 #   stress  20 round trips of a 64 MiB file (decrypt's worker threads)
-#   speed   encrypt and decrypt 256 MiB, hash 1 GiB: times only
+#   speed   encrypt and decrypt 64 MiB, hash 1 GiB: times
 #   make    encrypt 1 MiB and 64 MiB files into <dir> for the other CPU type
 #   check   decrypt the other CPU type's files in <dir>, compare by SHA-256
 set -u
@@ -37,6 +38,11 @@ case "$MODE" in
     elif dec changed changed.out; then r changed-byte FAIL "decrypt accepted a changed file"
     elif panic changed.out.log; then r changed-byte FAIL "$(tail -2 changed.out.log | tr '\n' ' ')"
     else r changed-byte PASS "refused: $(grep -v '^\s*$' changed.out.log | tail -1 | cut -c1-200)"; fi
+    head -c 105906176 /dev/urandom > big   # 101 MiB, over the free tier's 100 MB
+    if enc big big.c; then r tier-limit FAIL "a 101 MiB file was encrypted on the free tier"
+    elif grep -q 'max 100 MB' big.c.log && ! panic big.c.log; then r tier-limit PASS "$(grep -m1 'File too large' big.c.log)"
+    else r tier-limit FAIL "$(grep -v '^\s*$' big.c.log | tail -2 | tr '\n' ' ')"; fi
+    rm -f big big.c
     if dec c4096 wrong.out 'Not-the-password-123!'; then r wrong-password FAIL "decrypt accepted a wrong password"
     elif panic wrong.out.log; then r wrong-password FAIL "$(tail -2 wrong.out.log | tr '\n' ' ')"
     else r wrong-password PASS "refused: $(grep -v '^\s*$' wrong.out.log | tail -1 | cut -c1-200)"; fi
@@ -50,10 +56,11 @@ case "$MODE" in
     ;;
   speed)
     r cpu INFO "$(uname -m), $(nproc) CPUs, $( (lscpu 2>/dev/null | grep -m1 'Model name' | cut -d: -f2) | tr -s ' ')"
-    head -c 268435456 /dev/urandom > p
-    s="$(now)"; enc p c; e="$(now)"; r speed-encrypt-256mib INFO "$(mibs 268435456 "$s" "$e")"
-    s="$(now)"; dec c o; e="$(now)"; r speed-decrypt-256mib INFO "$(mibs 268435456 "$s" "$e")"
-    [ "$(sha o)" = "$(sha p)" ] || r speed-roundtrip FAIL "256 MiB round trip differs"
+    # 64 MiB: the free tier encrypts files up to 100 MB (checked in sizes).
+    head -c 67108864 /dev/urandom > p
+    s="$(now)"; enc p c; e="$(now)"; r speed-encrypt-64mib INFO "$(mibs 67108864 "$s" "$e")"
+    s="$(now)"; dec c o; e="$(now)"; r speed-decrypt-64mib INFO "$(mibs 67108864 "$s" "$e")"
+    if [ "$(sha o)" = "$(sha p)" ]; then r speed-roundtrip PASS "64 MiB identical"; else r speed-roundtrip FAIL "64 MiB round trip differs: $(tail -2 c.log o.log 2>/dev/null | tr '\n' ' ')"; fi
     rm -f c o; head -c 1073741824 /dev/urandom > big
     s="$(now)"; h="$(timeout 600 "$Q" hash big 2>/dev/null | grep -oE '^[0-9a-f]{64}' | head -1)"; e="$(now)"
     [ -n "$h" ] && r speed-hash-1gib INFO "$(mibs 1073741824 "$s" "$e")" || r speed-hash-1gib FAIL "no hash"

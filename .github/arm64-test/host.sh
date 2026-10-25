@@ -92,6 +92,7 @@ record static-banner "$OUT/static-banner.log"
 for p in packaged static; do
   b="$BIN"; [ "$p" = static ] && b="$STATIC"
   sudo unshare --net -- bash "$S/landlock-probe.sh" "$b" > "$OUT/landlock-$p.log" 2>&1; record "landlock-$p" "$OUT/landlock-$p.log"
+  offline bash "$S/landlock-probe.sh" "$b" --home-only > "$OUT/landlock-$p-user.log" 2>&1; record "landlock-$p-user" "$OUT/landlock-$p-user.log"
 done
 
 for m in sizes stress speed; do

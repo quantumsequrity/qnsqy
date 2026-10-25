@@ -1,9 +1,9 @@
 #!/bin/bash
 # x64.sh <make|check> <release dir> <out dir> <files dir>: the x86_64 side of
 # the test, on GitHub's x86_64 runner, every program run with no network and
-# an empty HOME. make: the edge sizes and speed (to compare with ARM64), then
-# files encrypted here for the ARM64 job. check: decrypt the files the ARM64
-# job encrypted and compare them by SHA-256.
+# an empty HOME. make: the edge sizes, speed and the file sandbox probe (to
+# compare with ARM64), then files encrypted here for the ARM64 job. check:
+# decrypt the files the ARM64 job encrypted and compare them by SHA-256.
 set -uo pipefail
 MODE="$1" REL="$(cd "$2" && pwd)" OUT="$3" FILES="$4"
 S="$(cd "$(dirname "$0")" && pwd)"
@@ -30,6 +30,8 @@ case "$MODE" in
       offline bash "$S/files.sh" "$BIN" "$m" > "$OUT/x64-files-$m.log" 2>&1; record "x64-files-$m" "$OUT/x64-files-$m.log"
     done
     offline bash "$S/files.sh" "$BIN" make "$FILES" > "$OUT/x64-cross-make.log" 2>&1; record x64-cross-make "$OUT/x64-cross-make.log"
+    sudo unshare --net -- bash "$S/landlock-probe.sh" "$BIN" > "$OUT/x64-landlock.log" 2>&1; record x64-landlock "$OUT/x64-landlock.log"
+    offline bash "$S/landlock-probe.sh" "$BIN" --home-only > "$OUT/x64-landlock-user.log" 2>&1; record x64-landlock-user "$OUT/x64-landlock-user.log"
     ;;
   check)
     offline bash "$S/files.sh" "$BIN" check "$FILES" > "$OUT/x64-cross-from-arm64.log" 2>&1; record x64-cross-from-arm64 "$OUT/x64-cross-from-arm64.log"
