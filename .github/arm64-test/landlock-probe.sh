@@ -13,6 +13,9 @@
 set -u
 Q="$1" MODE="${2:-}"
 r() { echo "RESULT|$1|$2|$3"; }
+# As root, use a root-owned copy, as a package install has: run as root, the
+# program does not let its MCP server start a program file another user owns.
+if [ "$(id -u)" -eq 0 ]; then install -m 755 -o root -g root "$Q" /usr/local/bin/qnsqy-probe && Q=/usr/local/bin/qnsqy-probe; fi
 abi="$(python3 -c '
 import ctypes
 libc = ctypes.CDLL(None, use_errno=True)
