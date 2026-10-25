@@ -13,9 +13,13 @@
 set -u
 Q="$1" MODE="${2:-}"
 r() { echo "RESULT|$1|$2|$3"; }
-# As root, use a root-owned copy, as a package install has: run as root, the
-# program does not let its MCP server start a program file another user owns.
-if [ "$(id -u)" -eq 0 ]; then install -m 755 -o root -g root "$Q" /usr/local/bin/qnsqy-probe && Q=/usr/local/bin/qnsqy-probe; fi
+# As root, use a root-owned copy in a folder only root can write, as a package
+# install has (/usr/bin): the program does not let its sandbox run its own
+# file if another user owns it or anyone can write to its folder (GitHub's
+# runners leave /usr/local/bin world-writable).
+if [ "$(id -u)" -eq 0 ]; then
+  install -d -m 755 -o root -g root /opt/qsprobe-bin && install -m 755 -o root -g root "$Q" /opt/qsprobe-bin/qnsqy && Q=/opt/qsprobe-bin/qnsqy
+fi
 abi="$(python3 -c '
 import ctypes
 libc = ctypes.CDLL(None, use_errno=True)
