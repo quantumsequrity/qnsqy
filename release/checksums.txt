@@ -1,11 +1,9 @@
-# QNSQY v7.2.48 SHA-256 Checksums (consumed by install.sh / install.ps1)
-# This header is part of the ML-DSA-87-signed payload (checksums.txt.sig).
-# Format: <sha256 hex (lowercase)><two spaces><filename>
+a321848c8e6f9dec01704c82f1e7e56006728c5dbcfa20abc928aa4504f635a0  qnsqy-7.2.48-1.20261027173822.g283e86d8.x86_64.rpm
+839a11e7d0a71ebed7966b4a01ab7b1a2e42580149ae504ea9a7a238ce68daa7  qnsqy-7.2.48-1.20261027175426.g283e86d8.aarch64.rpm
 ca2fee0c0e6f262a393b56b0a1cc5999f602220519b580f55c6b47a7ac4adfcf  qnsqy_7.2.48-1_amd64.deb
-a321848c8e6f9dec01704c82f1e7e56006728c5dbcfa20abc928aa4504f635a0  qnsqy-7.2.48-1.x86_64.rpm
 a438badbfadd6f9fe3126b462fd622b7ae639fcb78b3b66eb8ac56126074f75b  qnsqy_7.2.48-1_arm64.deb
-839a11e7d0a71ebed7966b4a01ab7b1a2e42580149ae504ea9a7a238ce68daa7  qnsqy-7.2.48-1.aarch64.rpm
-ba797bba5962a83b2a4162c263b89fd9f3a53f5d5367176f5f5f7cc6a3e69a83  qnsqy-7.2.48-linux-x86_64-static.tar.gz
+33cd56d43db8c88f435f885b734324a4b56ccfdc343cfcd64551b105f38c9ea1  qnsqy-7.2.48.cdx.json
 d7909abca77018f5cb6d7ddb88e91e9a67822f25655a9e6b343b77d23e1e039b  qnsqy-7.2.48-linux-aarch64-static.tar.gz
+ba797bba5962a83b2a4162c263b89fd9f3a53f5d5367176f5f5f7cc6a3e69a83  qnsqy-7.2.48-linux-x86_64-static.tar.gz
 e27b7f61c1090f30050cc3549a70d5519adc51600e68984aca7b66820c23cbb4  qnsqy-7.2.48-x86_64.exe
 385df3da1952744722003d2fcfb41bd48a41fd04b3b871cf77e9653ece911ac0  qnsqy-setup-7.2.48.exe
