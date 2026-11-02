@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.quantumsequrity/qnsqy",
+  "title": "QNSQY",
+  "description": "Linux only, local: post-quantum CBOM scan, encrypt to public keys, verify. Takes no secrets",
+  "version": "7.2.51",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "qnsqy",
+      "version": "7.2.51",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "--mcp-profile=strict"
+        }
+      ]
+    }
+  ]
+}
