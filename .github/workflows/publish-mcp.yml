@@ -1,0 +1,21 @@
+name: Publish to the MCP Registry
+# Run by hand after a release. Signs in with this repository's own GitHub identity, so no device code is needed.
+on:
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install mcp-publisher, pinned and checked
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz https://github.com/modelcontextprotocol/registry/releases/download/v1.8.7/mcp-publisher_linux_amd64.tar.gz
+          echo "00b21004149a4ce66f0782508ae4a2bce67d1bea395a8da0bd8028159fb59579  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+      - name: Sign in with GitHub OIDC
+        run: ./mcp-publisher login github-oidc
+      - name: Publish release/server.json
+        run: cd release && ../mcp-publisher publish
