@@ -3,12 +3,12 @@
   "name": "io.github.quantumsequrity/qnsqy",
   "title": "QNSQY",
   "description": "Linux only, local: post-quantum CBOM scan, encrypt to public keys, verify. Takes no secrets",
-  "version": "7.2.51",
+  "version": "7.2.52",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "qnsqy",
-      "version": "7.2.51",
+      "version": "7.2.52",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
