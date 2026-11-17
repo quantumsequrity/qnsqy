@@ -3,12 +3,25 @@
 Post-quantum cryptography tool, NIST FIPS 203 / 204 / 205.
 
 QNSQY ships ML-KEM (FIPS 203), ML-DSA (FIPS 204), and SLH-DSA (FIPS 205)
-hybridized with X25519, Ed25519, and AES-256-GCM. The single binary
+with AES-256-GCM, pure post-quantum or hybridized with X25519 and Ed25519. The single binary
 covers encrypt, decrypt, sign, verify, hash, keygen, threshold, and
 escrow operations. File content, passwords, and private keys never leave
 the machine. Network access is restricted to billing metadata only,
-enforced by seccomp-bpf on Linux. 84 MCP tools are exposed for AI agents
-over JSON-RPC 2.0 stdio.
+enforced by seccomp-bpf on Linux. An MCP server for AI agents runs over
+JSON-RPC 2.0 stdio.
+
+**For AI assistants, use the strict mode:** `qnsqy --mcp-profile=strict`
+(Linux only for now).
+Its tools have no field for a password, passphrase, private key, API key or
+payment token, and it refuses any call that adds one before a command runs.
+In the default mode (`qnsqy --mcp`), a password or key given to a tool becomes
+part of the AI conversation, which the assistant's provider processes.
+
+If your AI client starts QNSQY with `npx`, npx runs a `qnsqy` package from the
+folder that the client opens, if that folder has one, and puts that folder's
+`node_modules/.bin` first on your `PATH`. Start the client only in folders you
+trust, or install our signed packages from https://quantumsequrity.com/download
+and configure `qnsqy --mcp-profile=strict` directly.
 
 ## Install
 
@@ -25,8 +38,9 @@ npx qnsqy --help
 ```
 
 The matching prebuilt binary for your platform is installed automatically
-by npm as an optional dependency (`@quantumsequrity/qnsqy-linux-x64` or
-`@quantumsequrity/qnsqy-win32-x64`), selected by its `os` / `cpu` fields.
+by npm as an optional dependency (`@quantumsequrity/qnsqy-linux-x64`,
+`@quantumsequrity/qnsqy-linux-arm64` or `@quantumsequrity/qnsqy-win32-x64`),
+selected by its `os` / `cpu` fields.
 There is no install script and no network download of our own: npm fetches
 only the one platform package that matches your machine, from the npm
 registry. Because no install script is involved,
@@ -65,10 +79,11 @@ https://quantumsequrity.com/docs.html.
 
 | Platform        | Status                                                                           |
 |-----------------|----------------------------------------------------------------------------------|
-| Linux x86_64    | Supported. Requires glibc 2.35+ (Ubuntu 22.04+, Debian 12+, Fedora 40-44, AlmaLinux 10, RHEL 9.4+). On a sub-floor distro the wrapper fail-closes at run time with a clear glibc-version message (it does not crash). |
+| Linux x86_64    | Supported. Requires glibc 2.28+ (RHEL 8+ and its rebuilds, Amazon Linux 2023, Fedora 40+, Ubuntu 20.04+, Debian 11+, SLES 15 SP6). On a sub-floor distro the wrapper fail-closes at run time with a clear glibc-version message (it does not crash). |
+| Linux ARM64     | Supported. Requires glibc 2.28+. Tested on an emulated ARM64 machine, not yet on ARM64 hardware. |
 | Windows x86_64  | Supported. Windows 10 1809+ and Windows 11.                                      |
-| macOS           | Not shipping yet. Target Q3 2026. `npm install` succeeds; `qnsqy` prints a not-yet-shipping message at run time. |
-| ARM (any OS)    | Not shipping yet. `npm install` succeeds; `qnsqy` prints a not-yet-shipping message at run time. |
+| macOS           | Not shipping yet. `npm install` succeeds; `qnsqy` prints a not-yet-shipping message at run time. |
+| Windows on ARM  | Not shipping yet. `npm install` succeeds; `qnsqy` prints a not-yet-shipping message at run time. |
 
 On an unsupported platform, `npm install qnsqy` still succeeds (the main
 package installs everywhere), but no platform binary matches your machine,
@@ -80,13 +95,14 @@ likely installed with optional dependencies disabled: reinstall with
 ## How this package works
 
 The main `qnsqy` package is a thin JavaScript shim. No binary is bundled
-in it and it runs no install script. The binary ships in two
+in it and it runs no install script. The binary ships in three
 platform-specific packages that the main package lists as optional
 dependencies:
 
 | Package                            | For            |
 |------------------------------------|----------------|
 | `@quantumsequrity/qnsqy-linux-x64` | Linux x86_64   |
+| `@quantumsequrity/qnsqy-linux-arm64` | Linux ARM64  |
 | `@quantumsequrity/qnsqy-win32-x64` | Windows x86_64 |
 
 1. `npm install -g qnsqy` reads the main package's `optionalDependencies`.
@@ -180,8 +196,9 @@ See https://quantumsequrity.com/pricing.html for current pricing.
 ## Disclaimers
 
 QNSQY uses NIST-standardized algorithms (FIPS 203 ML-KEM, FIPS 204
-ML-DSA, FIPS 205 SLH-DSA, FIPS 206 draft FN-DSA, SP 800-208 LMS, RFC 9106
-Argon2id). The product itself holds no CMVP certificate (so is not a
+ML-DSA, FIPS 205 SLH-DSA, SP 800-208 LMS, RFC 9106 Argon2id) plus FN-DSA
+(FIPS 206, not yet published; pre-standard Falcon implementation). The
+product itself holds no CMVP certificate (so is not a
 FIPS 140 module), no SOC 2 attestation, no U.S. federal cloud ATO under
 the standard government program, and no external HIPAA audit on file.
 The vendor does not sign HIPAA Business Associate Agreements.
